@@ -2,15 +2,18 @@
 pragma solidity 0.8.18;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {VaultProxy} from "./VaultProxy.sol";
+import {VaultImplementation} from "./VaultImplementationV1.sol";
 
 contract VaultFactory {
 
     address public governor;
+    address public keeper;
 
-    mapping (address => mapping(bytes32 => bool)) vaults;
+    mapping (address => mapping(bytes32 => address)) vaults;
 
-    event CreateVault(address creator, bytes32 name);
-    event DeleteVault(address creator, bytes32 name);
+    event CreateVault(address creator, bytes32 name, address vaultImplementation, address vaultProxy);
+    event DeleteVault(address creator, address vaultProxy);
 
     modifier onlyGov {
         require(msg.sender == governor);
@@ -26,6 +29,10 @@ contract VaultFactory {
         governor = newGovernor;
     }
 
+    function setKeeper(address newKeeper) public onlyGov {
+        keeper = newKeeper;
+    }
+
     function withdrawETH(address recepient) public onlyGov{
         payable(recepient).transfer(address(this).balance);
     }
@@ -36,15 +43,21 @@ contract VaultFactory {
 
 
     function createVault(bytes32 name) public {
-       vaults[msg.sender][name] = true;
 
-       emit CreateVault(msg.sender, name);
+       VaultImplementation vaultImplementation = new VaultImplementation();
+       VaultProxy vaultProxy = new VaultProxy(address(vaultImplementation));
+
+       VaultImplementation(address(vaultProxy)).initialize(name);
+       
+       vaults[msg.sender][address(vaultProxy)] = name;
+
+       emit CreateVault(msg.sender, name, address(vaultImplementation), address(vaultProxy));
     }
 
-    function deleteVault(bytes32 name) public {
-       delete vaults[msg.sender][name];
+    function deleteVault(address vaultProxy) public {
+       delete vaults[msg.sender][vaultProxy];
 
-       emit DeleteVault(msg.sender, name);
+       emit DeleteVault(msg.sender, vaultProxy);
     }
 }
 
