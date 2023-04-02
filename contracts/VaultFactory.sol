@@ -10,7 +10,7 @@ contract VaultFactory {
     address public governor;
     address public keeper;
 
-    mapping (address => mapping(bytes32 => address)) vaults;
+    mapping (address => mapping(address => bytes32)) vaults;
 
     event CreateVault(address creator, bytes32 name, address vaultImplementation, address vaultProxy);
     event DeleteVault(address creator, address vaultProxy);

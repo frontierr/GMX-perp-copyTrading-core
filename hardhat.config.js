@@ -23,11 +23,16 @@ module.exports = {
  networks: {
    arbitrum: {
      url: `https://rpc.ankr.com/eth_goerli`,
-     accounts: [process.env.PRIVATE_KEY],
+     accounts: ["0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"], // account 0 fork
+    //  accounts: [process.env.PRIVATE_KEY],
    },
    arbitrumFork : {
      url: `http://127.0.0.1:8545/`,
-     accounts: ["0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"], // account 0
+     accounts: ["0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"], // account 0 fork
+   },
+   sepolia : {
+     url: `https://eth-sepolia.public.blastapi.io` || `https://rpc.sepolia.org`,
+     accounts: [process.env.PRIVATE_KEY], 
    }
  },
  
