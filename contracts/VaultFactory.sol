@@ -9,6 +9,7 @@ contract VaultFactory {
 
     address public governor;
     address public keeper;
+    uint256 public MANAGEMENT_FEE;
 
     mapping (address => mapping(address => bytes32)) vaults;
 
@@ -24,6 +25,8 @@ contract VaultFactory {
         governor = msg.sender;
     }
 
+    receive() payable external{}
+
 
     function setGovernor(address newGovernor) public onlyGov {
         governor = newGovernor;
@@ -31,6 +34,10 @@ contract VaultFactory {
 
     function setKeeper(address newKeeper) public onlyGov {
         keeper = newKeeper;
+    }
+
+    function setManagementFee(uint256 newManagementFee) public onlyGov {
+        MANAGEMENT_FEE = newManagementFee;
     }
 
     function withdrawETH(address recepient) public onlyGov{
@@ -47,7 +54,7 @@ contract VaultFactory {
        VaultImplementation vaultImplementation = new VaultImplementation();
        VaultProxy vaultProxy = new VaultProxy(address(vaultImplementation));
 
-       VaultImplementation(address(vaultProxy)).initialize(name);
+       VaultImplementation(address(vaultProxy)).initialize(name, keeper, address(this), MANAGEMENT_FEE);
        
        vaults[msg.sender][address(vaultProxy)] = name;
 
