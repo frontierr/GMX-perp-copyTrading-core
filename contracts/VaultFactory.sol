@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Unlicensed
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.18;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -54,7 +54,7 @@ contract VaultFactory {
        VaultImplementation vaultImplementation = new VaultImplementation();
        VaultProxy vaultProxy = new VaultProxy(address(vaultImplementation));
 
-       VaultImplementation(address(vaultProxy)).initialize(name, keeper, address(this), MANAGEMENT_FEE);
+       VaultImplementation(payable(address(vaultProxy))).initialize(name, keeper, address(this), MANAGEMENT_FEE);
        
        vaults[msg.sender][address(vaultProxy)] = name;
 

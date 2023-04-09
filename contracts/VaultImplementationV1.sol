@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Unlicensed
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.18;
 
 
@@ -17,14 +17,20 @@ contract VaultImplementation is Initializable, ERC1967Upgrade, OwnableUpgradeabl
     uint256 public MANAGEMENT_FEE;
     struct TraderProps {
         bool inverseCopyTrade;
+        uint16 copySizeBPS;
+        address defaultCollateral;
     }
 
-    mapping (address => TraderProps) trader;
+    mapping (address => TraderProps) traders;
+
+    event Trader(address indexed trader, bool inverseCopyTrade, uint16 copySizeBPS, address defaultCollateral);
 
     modifier onlyKeeper {
         require(msg.sender == keeper);
         _;
     }
+
+    receive() payable external{}
 
 
     function initialize(bytes32 _name, address _keeper, address _vaultFactory, uint256 _managementFee) public initializer {
@@ -33,6 +39,30 @@ contract VaultImplementation is Initializable, ERC1967Upgrade, OwnableUpgradeabl
         vaultFactory = _vaultFactory;
         MANAGEMENT_FEE = _managementFee;
         __Ownable_init();
+    }
+
+    function modifyTrader(address trader ,bool inverseCopyTrade, uint16 copySizeBPS, address defaultCollateral) public onlyOwner {
+        traders[trader] = TraderProps(inverseCopyTrade, copySizeBPS, defaultCollateral);
+
+        emit Trader(trader, inverseCopyTrade, copySizeBPS, defaultCollateral);
+    }
+
+    function addTrader(address trader ,bool inverseCopyTrade, uint16 copySizeBPS, address defaultCollateral) public onlyOwner {
+        TraderProps storage traderProps = traders[trader];
+
+        require(traderProps.defaultCollateral == address(0), "already added");
+
+        traderProps.inverseCopyTrade = inverseCopyTrade;
+        traderProps.copySizeBPS = copySizeBPS;
+        traderProps.defaultCollateral = defaultCollateral;
+
+        emit Trader(trader, inverseCopyTrade, copySizeBPS, defaultCollateral);
+    }
+
+    function deleteTrader(address trader) public onlyOwner {
+        delete traders[trader];
+
+        emit Trader(trader, false, 0, address(0));
     }
 
 
@@ -51,11 +81,16 @@ contract VaultImplementation is Initializable, ERC1967Upgrade, OwnableUpgradeabl
         require(success, "tx call failed");
     }
 
-    function withDrawProfit(address token, address recepient, uint256 amount) public  {
+    function withDrawProfit(address token, address recepient, uint256 amount) public onlyOwner {
         if (token != address(0)) {
             IERC20(token).transfer(recepient, amount * (BASIS_POINTS_DIVISOR -  MANAGEMENT_FEE) / BASIS_POINTS_DIVISOR);
             IERC20(token).transfer(vaultFactory, amount * MANAGEMENT_FEE / BASIS_POINTS_DIVISOR);
         }
+    }
+
+    function withdrawETH(address recepient) public onlyOwner {
+        payable(vaultFactory).transfer(address(this).balance * MANAGEMENT_FEE / BASIS_POINTS_DIVISOR);
+        payable(recepient).transfer(address(this).balance );
     }
 
 
