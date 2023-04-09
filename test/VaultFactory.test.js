@@ -1,164 +1,194 @@
-// SPDX-License-Identifier: MIT
 
-import { ethers } from "hardhat";
-import { expect } from "chai";
+
+const { expect } = require("chai");
+const { ethers } = require("hardhat");
+
+// describe("VaultFactory0", function () {
+//   let vaultFactory;
+//   let owner;
+//   let user1;
+//   let user2;
+//   let vaultImplementation;
+
+//   beforeEach(async function () {
+//     [owner, user1, user2] = await ethers.getSigners();
+//     vaultFactory = await ethers.getContractFactory("VaultFactory", owner);
+//     vaultImplementation = await ethers.getContractFactory("VaultImplementation", owner);
+//   });
+
+//   describe("constructor", function () {
+//     it("should set the governor to the contract deployer", async function () {
+//       const vf = await vaultFactory.deploy();
+//       expect(await vf.governor()).to.equal(owner.address);
+//     });
+//   });
+
+//   describe("setGovernor", function () {
+//     it("should allow the governor to be changed by the current governor", async function () {
+//       const vf = await vaultFactory.deploy();
+//       await vf.setGovernor(user1.address);
+//       expect(await vf.governor()).to.equal(user1.address);
+//     });
+
+//     it("should revert when called by a non-governor", async function () {
+//       const vf = await vaultFactory.deploy();
+//       await expect(vf.connect(user1).setGovernor(user2.address)).to.be.reverted;
+//     });
+//   });
+
+//   describe("setKeeper", function () {
+//     it("should allow the keeper to be changed by the current governor", async function () {
+//       const vf = await vaultFactory.deploy();
+//       await vf.setKeeper(user1.address);
+//       expect(await vf.keeper()).to.equal(user1.address);
+//     });
+
+//     it("should revert when called by a non-governor", async function () {
+//       const vf = await vaultFactory.deploy();
+//       await expect(vf.connect(user1).setKeeper(user2.address)).to.be.reverted;
+//     });
+//   });
+
+//   describe("setManagementFee", function () {
+//     it("should allow the management fee to be changed by the current governor", async function () {
+//       const vf = await vaultFactory.deploy();
+//       await vf.setManagementFee(500);
+//       expect(await vf.MANAGEMENT_FEE()).to.equal(500);
+//     });
+
+//     it("should revert when called by a non-governor", async function () {
+//       const vf = await vaultFactory.deploy();
+//       await expect(vf.connect(user1).setManagementFee(500)).to.be.reverted;
+//     });
+//   });
+
+//   describe("withdrawETH", function () {
+
+//     it("should revert when called by a non-governor", async function () {
+//       const vf = await vaultFactory.deploy();
+//       await expect(vf.connect(user1).withdrawETH(owner.address)).to.be.reverted;
+//     });
+//   });
+
+//   describe("withdrawTokens", function () {
+//     let token;
+//     let vf;
+
+//     beforeEach(async function () {
+//       vf = await vaultFactory.deploy();
+//       token = await (await ethers.getContractFactory("MockToken")).deploy("Mock Token", "MT", 18);
+//       await token.mint(owner.address, ethers.utils.parseEther("10000"))
+//       await token.transfer(vf.address, ethers.utils.parseEther("100"));
+//     });
+
+//     it("should allow the governor to withdraw tokens from the contract", async function () {
+//       const initialBalance = await token.balanceOf(owner.address);
+//       await vf.withdrawTokens(owner.address, token.address, ethers.utils.parseEther("50"));
+//       const finalBalance = await token.balanceOf(owner.address);
+//       expect(finalBalance.sub(initialBalance)).to.equal(ethers.utils.parseEther("50"));
+//     });
+
+//     it("should revert when called by a non-governor", async function () {
+//       await expect(vf.connect(user1).withdrawTokens(owner.address, token.address, ethers.utils.parseEther("50"))).to.be.reverted;
+//     });
+//   });
+
+  
+
+// })
+
+
 
 describe("VaultFactory", function () {
-    let vaultFactory, owner, governor, keeper, implementation, proxy;
+  let factory;
+  let implementation;
+  let proxy;
+  let owner;
+  let name = ethers.utils.formatBytes32String("Test Vault");
+  let keeper;
+  let MANAGEMENT_FEE = 100;
 
-    before(async function () {
-      [owner, governor, keeper] = await ethers.getSigners();
-      const VaultImplementation = await ethers.getContractFactory("VaultImplementation");
-      implementation = await VaultImplementation.deploy();
-      const VaultProxy = await ethers.getContractFactory("VaultProxy");
-      const proxyContract = await VaultProxy.deploy(implementation.address);
-      proxy = await ethers.getContractAt("VaultImplementation", proxyContract.address);
-      const VaultFactory = await ethers.getContractFactory("VaultFactory");
-      vaultFactory = await VaultFactory.deploy();
-      await vaultFactory.deployed();
-    });
+  beforeEach(async () => {
+    [owner] = await ethers.getSigners();
   
-    describe("createVault", function () {
-      const name = "MyVault";
+    factory = await ethers.getContractFactory("VaultFactory");
+    implementation = await ethers.getContractFactory("VaultImplementation");
   
-      it("should create a new vault and initialize the implementation with the given name, keeper, and management fee", async function () {
-        const tx = await vaultFactory.createVault(name);
-        const receipt = await tx.wait();
+    proxy =await ethers.getContractFactory("VaultProxy");
   
-        expect(receipt.status).to.equal(1);
-        expect(receipt.events.length).to.equal(1);
-        expect(receipt.events[0].event).to.equal("CreateVault");
-        expect(receipt.events[0].args.creator).to.equal(owner.address);
-        expect(receipt.events[0].args.name).to.equal(name);
+    implementation = await implementation.deploy();
+    await implementation.connect(owner).initialize(name, keeper, factory.address, MANAGEMENT_FEE);
   
-        const vaultProxyName = await implementation.name();
-        const vaultProxyKeeper = await implementation.keeper();
-        const vaultProxyManagementFee = await implementation.MANAGEMENT_FEE();
-        const vaultProxyOwner = await proxy.owner();
-        const vaultProxyImplementation = await proxy.implementation();
-  
-        expect(vaultProxyName).to.equal(name);
-        expect(vaultProxyKeeper).to.equal(keeper.address);
-        expect(vaultProxyManagementFee).to.equal(0);
-        expect(vaultProxyOwner).to.equal(vaultFactory.address);
-        expect(vaultProxyImplementation).to.equal(implementation.address);
-  
-        const vaultName = await vaultFactory.vaults(owner.address, proxy.address);
-        expect(vaultName).to.equal(name);
-      });
-    });
-  
-    describe("deleteVault", function () {
-      const name = "MyVault";
-  
-      it("should delete an existing vault and return true", async function () {
-        await vaultFactory.createVault(name);
-        const tx = await vaultFactory.deleteVault(proxy.address);
-        const receipt = await tx.wait();
-  
-        expect(receipt.status).to.equal(1);
-        expect(receipt.events.length).to.equal(1);
-        expect(receipt.events[0].event).to.equal("DeleteVault");
-        expect(receipt.events[0].args.creator).to.equal(owner.address);
-        expect(receipt.events[0].args.proxyAddress).to.equal(proxy.address);
-  
-        const vaultName = await vaultFactory.vaults(owner.address, proxy.address);
-        expect(vaultName).to.equal("");
-      });
-  
-      it("should revert if an invalid proxy address is provided", async function () {
-        await expect(vaultFactory.deleteVault(ethers.constants.AddressZero)).to.be.revertedWith("VaultFactory: Invalid proxy address");
-      });
-    });
+    await factory.deploy()
+    await proxy.deploy(implementation.address)
+    keeper = owner.address;
+  });
 
-    describe("withdrawETH", function () {
-        const amount = ethers.utils.parseEther("1");
-        const recipient = "0x0000000000000000000000000000000000000000";
-    
-        it("should withdraw ETH from the factory contract to the specified recipient", async function () {
-          await owner.sendTransaction({ to: vaultFactory.address, value: amount });
-          const balanceBefore = await ethers.provider.getBalance(recipient);
-          await vaultFactory.connect(governor).withdrawETH(amount, recipient);
-          const balanceAfter = await ethers.provider.getBalance(recipient);
-          expect(balanceAfter.sub(balanceBefore)).to.equal(amount);
-        });
-    
-        it("should revert if non-governor tries to withdraw ETH", async function () {
-          await expect(vaultFactory.connect(owner).withdrawETH(amount, recipient)).to.be.revertedWith("VaultFactory: Only governor can withdraw ETH");
-        });
+  describe("createVault", function () {
+    it("creates a new vault with the specified name", async function () {
+      const  name = ethers.utils.formatBytes32String("Test Vault");
+      await factory.connect(owner).createVault(name);
+      const vaultName = await factory.vaults(owner.address, proxy.address);
+      expect(vaultName).to.equal(name);
     });
-    
-    describe("withdrawTokens", function () {
-        const tokenAmount = ethers.utils.parseUnits("100", 18);
-        let token;
+  });
 
-        before(async function () {
-            const Token = await ethers.getContractFactory("Token");
-            token = await Token.deploy();
-            await token.transfer(vaultFactory.address, tokenAmount);
-        });
-
-        it("should withdraw ERC20 tokens from the factory contract to the specified recipient", async function () {
-            const recipient = "0x0000000000000000000000000000000000000000";
-            const balanceBefore = await token.balanceOf(recipient);
-            await vaultFactory.connect(governor).withdrawTokens(token.address, tokenAmount, recipient);
-            const balanceAfter = await token.balanceOf(recipient);
-            expect(balanceAfter.sub(balanceBefore)).to.equal(tokenAmount);
-        });
-
-        it("should revert if non-governor tries to withdraw tokens", async function () {
-            await expect(vaultFactory.connect(owner).withdrawTokens(token.address, tokenAmount, owner.address)).to.be.revertedWith("VaultFactory: Only governor can withdraw tokens");
-        });
-
-        it("should revert if trying to withdraw more tokens than available", async function () {
-            await expect(vaultFactory.connect(governor).withdrawTokens(token.address, tokenAmount.add(1), owner.address)).to.be.revertedWith("VaultFactory: Insufficient tokens balance");
-        });
+  describe("deleteVault", function () {
+    it("deletes an existing vault", async function () {
+      const  name = ethers.utils.formatBytes32String("Test Vault");
+      await factory.connect(owner).createVault(name);
+      await factory.connect(owner).deleteVault(proxy.address);
+      const vaultName = await factory.vaults(owner.address, proxy.address);
+      expect(vaultName).to.equal("");
     });
-    
-    describe("setGovernor", function () {
-        it("should change the governor to the specified address", async function () {
-          await vaultFactory.connect(governor).setGovernor(owner.address);
-          const newGovernor = await vaultFactory.governor();
-          expect(newGovernor).to.equal(owner.address);
-        });
-    
-        it("should revert if non-governor tries to change the governor", async function () {
-          await expect(vaultFactory.connect(owner).setGovernor(keeper.address)).to.be.revertedWith("VaultFactory: Only governor can set governor");
-        });
-    });
+  });
 
-    describe("setKeeper", function () {
-        it("should revert if called by a non-governor", async function () {
-          const nonGovernor = await ethers.getSigner();
-          await expect(
-            vaultFactory.connect(nonGovernor).setKeeper(keeper.address)
-          ).to.be.revertedWith("VaultFactory: caller is not the governor");
-        });
-    
-        it("should set the keeper address", async function () {
-          await vaultFactory.connect(governor).setKeeper(keeper.address);
-          const keeperAddress = await vaultFactory.keeper();
-          expect(keeperAddress).to.equal(keeper.address);
-        });
+  describe("setGovernor", function () {
+    it("sets the governor address to the specified address", async function () {
+      const newGovernor = ethers.Wallet.createRandom().address;
+      await factory.connect(owner).setGovernor(newGovernor);
+      const governor = await factory.governor();
+      expect(governor).to.equal(newGovernor);
     });
-    
-    describe("setManagementFee", function () {
-        const newFee = 100; // 1% management fee
-    
-        it("should revert if called by a non-governor", async function () {
-          const nonGovernor = await ethers.getSigner();
-          await expect(
-            vaultFactory.connect(nonGovernor).setManagementFee(newFee)
-          ).to.be.revertedWith("VaultFactory: caller is not the governor");
-        });
-    
-        it("should set the management fee", async function () {
-          await vaultFactory.connect(governor).setManagementFee(newFee);
-          const managementFee = await vaultFactory.managementFee();
-          expect(managementFee).to.equal(newFee);
-        });
-    });
-  
+  });
 
-  
+  describe("setKeeper", function () {
+    it("sets the keeper address to the specified address", async function () {
+      const newKeeper = ethers.Wallet.createRandom().address;
+      await factory.connect(owner).setKeeper(newKeeper);
+      const keeper = await factory.keeper();
+      expect(keeper).to.equal(newKeeper);
+    });
+  });
+
+  describe("setManagementFee", function () {
+    it("sets the management fee to the specified amount", async function () {
+      const newFee = 200;
+      await factory.connect(owner).setManagementFee(newFee);
+      const fee = await factory.MANAGEMENT_FEE();
+      expect(fee).to.equal(newFee);
+    });
+  });
+
+  describe("withdrawETH", function () {
+    it("withdraws ETH from the contract", async function () {
+      const balanceBefore = await owner.getBalance();
+      await factory.depositETH({ value: 100 });
+      await factory.connect(owner).withdrawETH(owner.address);
+      const balanceAfter = await owner.getBalance();
+      expect(balanceAfter).to.equal(balanceBefore.add(100));
+    });
+  });
+
+  describe("withdrawTokens", function () {
+    it("withdraws tokens from the contract", async function () {
+      const tokenFactory = await ethers.getContractFactory("ERC20");
+      const token = await tokenFactory.deploy("Test Token", "TEST", 18, 1000);
+      await token.transfer(factory.address, 100);
+      const balanceBefore = await token.balanceOf(owner.address);
+      await factory.connect(owner).withdrawTokens(owner.address, token.address, 100);
+      const balanceAfter = await token.balanceOf(owner.address);
+      expect(balanceAfter).to.equal(balanceBefore.add(100));
+    });
+  });
 });

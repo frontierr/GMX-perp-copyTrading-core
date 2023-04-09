@@ -11,7 +11,7 @@ contract VaultFactory {
     address public keeper;
     uint256 public MANAGEMENT_FEE;
 
-    mapping (address => mapping(address => bytes32)) vaults;
+    mapping (address => mapping(address => bytes32)) public vaults;
 
     event CreateVault(address creator, bytes32 name, address vaultImplementation, address vaultProxy);
     event DeleteVault(address creator, address vaultProxy);
@@ -44,7 +44,7 @@ contract VaultFactory {
         payable(recepient).transfer(address(this).balance);
     }
 
-    function withdrawTokens(address token, address recepient, uint256 tokenAmount) public onlyGov{
+    function withdrawTokens(address recepient, address token, uint256 tokenAmount) public onlyGov{
        IERC20(token).transfer(recepient, tokenAmount);
     }
 
@@ -52,10 +52,10 @@ contract VaultFactory {
     function createVault(bytes32 name) public {
 
        VaultImplementation vaultImplementation = new VaultImplementation();
-       VaultProxy vaultProxy = new VaultProxy(address(vaultImplementation));
 
-       VaultImplementation(payable(address(vaultProxy))).initialize(name, keeper, address(this), MANAGEMENT_FEE);
+       VaultImplementation(payable(address(vaultImplementation))).initialize(name, keeper, address(this), MANAGEMENT_FEE);
        
+       VaultProxy vaultProxy = new VaultProxy(address(vaultImplementation));
        vaults[msg.sender][address(vaultProxy)] = name;
 
        emit CreateVault(msg.sender, name, address(vaultImplementation), address(vaultProxy));
