@@ -30,3 +30,6 @@ main()
     console.error(error);
     process.exit(1);
   });
+
+
+    // npx hardhat run --network arbitrumGoerli  scripts/Gov/setVaultFactoryParams.js

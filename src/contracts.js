@@ -1,5 +1,5 @@
 const ADDRESSES = {
-    "VaultFactory" : "0x7D8bA78B42C4848CFFF493b5a595655533B4cb25",
+    "VaultFactory" : "0x0518e7e84F8188509E871c524fd418C0799CE997",
     "Keeper" : "0xD5fba05dE4b2d303D03052e8aFbF31a767Bd908e",
     "Governor" : "0xD5fba05dE4b2d303D03052e8aFbF31a767Bd908e",
 }

@@ -78,5 +78,5 @@ contract VaultImplementation is Initializable, OwnableUpgradeable, UUPSUpgradeab
         payable(recepient).transfer(address(this).balance);
     }
 
-    function _authorizeUpgrade(address newImplementation) internal virtual override {}
+   function _authorizeUpgrade(address) internal override onlyOwner {}
 }
