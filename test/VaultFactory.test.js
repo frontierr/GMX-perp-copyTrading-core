@@ -3,99 +3,99 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
-// describe("VaultFactory0", function () {
-//   let vaultFactory;
-//   let owner;
-//   let user1;
-//   let user2;
-//   let vaultImplementation;
+describe("VaultFactory0", function () {
+  let vaultFactory;
+  let owner;
+  let user1;
+  let user2;
+  let vaultImplementation;
 
-//   beforeEach(async function () {
-//     [owner, user1, user2] = await ethers.getSigners();
-//     vaultFactory = await ethers.getContractFactory("VaultFactory", owner);
-//     vaultImplementation = await ethers.getContractFactory("VaultImplementation", owner);
-//   });
+  beforeEach(async function () {
+    [owner, user1, user2] = await ethers.getSigners();
+    vaultFactory = await ethers.getContractFactory("VaultFactory", owner);
+    vaultImplementation = await ethers.getContractFactory("VaultImplementation", owner);
+  });
 
-//   describe("constructor", function () {
-//     it("should set the governor to the contract deployer", async function () {
-//       const vf = await vaultFactory.deploy();
-//       expect(await vf.governor()).to.equal(owner.address);
-//     });
-//   });
+  describe("constructor", function () {
+    it("should set the governor to the contract deployer", async function () {
+      const vf = await vaultFactory.deploy();
+      expect(await vf.governor()).to.equal(owner.address);
+    });
+  });
 
-//   describe("setGovernor", function () {
-//     it("should allow the governor to be changed by the current governor", async function () {
-//       const vf = await vaultFactory.deploy();
-//       await vf.setGovernor(user1.address);
-//       expect(await vf.governor()).to.equal(user1.address);
-//     });
+  describe("setGovernor", function () {
+    it("should allow the governor to be changed by the current governor", async function () {
+      const vf = await vaultFactory.deploy();
+      await vf.setGovernor(user1.address);
+      expect(await vf.governor()).to.equal(user1.address);
+    });
 
-//     it("should revert when called by a non-governor", async function () {
-//       const vf = await vaultFactory.deploy();
-//       await expect(vf.connect(user1).setGovernor(user2.address)).to.be.reverted;
-//     });
-//   });
+    it("should revert when called by a non-governor", async function () {
+      const vf = await vaultFactory.deploy();
+      await expect(vf.connect(user1).setGovernor(user2.address)).to.be.reverted;
+    });
+  });
 
-//   describe("setKeeper", function () {
-//     it("should allow the keeper to be changed by the current governor", async function () {
-//       const vf = await vaultFactory.deploy();
-//       await vf.setKeeper(user1.address);
-//       expect(await vf.keeper()).to.equal(user1.address);
-//     });
+  describe("setKeeper", function () {
+    it("should allow the keeper to be changed by the current governor", async function () {
+      const vf = await vaultFactory.deploy();
+      await vf.setKeeper(user1.address);
+      expect(await vf.keeper()).to.equal(user1.address);
+    });
 
-//     it("should revert when called by a non-governor", async function () {
-//       const vf = await vaultFactory.deploy();
-//       await expect(vf.connect(user1).setKeeper(user2.address)).to.be.reverted;
-//     });
-//   });
+    it("should revert when called by a non-governor", async function () {
+      const vf = await vaultFactory.deploy();
+      await expect(vf.connect(user1).setKeeper(user2.address)).to.be.reverted;
+    });
+  });
 
-//   describe("setManagementFee", function () {
-//     it("should allow the management fee to be changed by the current governor", async function () {
-//       const vf = await vaultFactory.deploy();
-//       await vf.setManagementFee(500);
-//       expect(await vf.MANAGEMENT_FEE()).to.equal(500);
-//     });
+  describe("setManagementFee", function () {
+    it("should allow the management fee to be changed by the current governor", async function () {
+      const vf = await vaultFactory.deploy();
+      await vf.setManagementFee(500);
+      expect(await vf.MANAGEMENT_FEE()).to.equal(500);
+    });
 
-//     it("should revert when called by a non-governor", async function () {
-//       const vf = await vaultFactory.deploy();
-//       await expect(vf.connect(user1).setManagementFee(500)).to.be.reverted;
-//     });
-//   });
+    it("should revert when called by a non-governor", async function () {
+      const vf = await vaultFactory.deploy();
+      await expect(vf.connect(user1).setManagementFee(500)).to.be.reverted;
+    });
+  });
 
-//   describe("withdrawETH", function () {
+  describe("withdrawETH", function () {
 
-//     it("should revert when called by a non-governor", async function () {
-//       const vf = await vaultFactory.deploy();
-//       await expect(vf.connect(user1).withdrawETH(owner.address)).to.be.reverted;
-//     });
-//   });
+    it("should revert when called by a non-governor", async function () {
+      const vf = await vaultFactory.deploy();
+      await expect(vf.connect(user1).withdrawETH(owner.address)).to.be.reverted;
+    });
+  });
 
-//   describe("withdrawTokens", function () {
-//     let token;
-//     let vf;
+  describe("withdrawTokens", function () {
+    let token;
+    let vf;
 
-//     beforeEach(async function () {
-//       vf = await vaultFactory.deploy();
-//       token = await (await ethers.getContractFactory("MockToken")).deploy("Mock Token", "MT", 18);
-//       await token.mint(owner.address, ethers.utils.parseEther("10000"))
-//       await token.transfer(vf.address, ethers.utils.parseEther("100"));
-//     });
+    beforeEach(async function () {
+      vf = await vaultFactory.deploy();
+      token = await (await ethers.getContractFactory("MockToken")).deploy("Mock Token", "MT", 18);
+      await token.mint(owner.address, ethers.utils.parseEther("10000"))
+      await token.transfer(vf.address, ethers.utils.parseEther("100"));
+    });
 
-//     it("should allow the governor to withdraw tokens from the contract", async function () {
-//       const initialBalance = await token.balanceOf(owner.address);
-//       await vf.withdrawTokens(owner.address, token.address, ethers.utils.parseEther("50"));
-//       const finalBalance = await token.balanceOf(owner.address);
-//       expect(finalBalance.sub(initialBalance)).to.equal(ethers.utils.parseEther("50"));
-//     });
+    it("should allow the governor to withdraw tokens from the contract", async function () {
+      const initialBalance = await token.balanceOf(owner.address);
+      await vf.withdrawTokens(owner.address, token.address, ethers.utils.parseEther("50"));
+      const finalBalance = await token.balanceOf(owner.address);
+      expect(finalBalance.sub(initialBalance)).to.equal(ethers.utils.parseEther("50"));
+    });
 
-//     it("should revert when called by a non-governor", async function () {
-//       await expect(vf.connect(user1).withdrawTokens(owner.address, token.address, ethers.utils.parseEther("50"))).to.be.reverted;
-//     });
-//   });
+    it("should revert when called by a non-governor", async function () {
+      await expect(vf.connect(user1).withdrawTokens(owner.address, token.address, ethers.utils.parseEther("50"))).to.be.reverted;
+    });
+  });
 
   
 
-// })
+})
 
 
 
