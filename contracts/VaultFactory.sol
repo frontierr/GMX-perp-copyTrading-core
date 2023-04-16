@@ -48,10 +48,10 @@ contract VaultFactory {
 
     function createVault(bytes32 name) public {
         VaultImplementation vaultImplementation = new VaultImplementation();
-        VaultImplementation(payable(address(vaultImplementation))).initialize(name, keeper, address(this), MANAGEMENT_FEE);
         VaultProxy vaultProxy = new VaultProxy(address(vaultImplementation));
+        VaultImplementation(payable(address(vaultImplementation))).initialize();
+        VaultImplementation(payable(address(vaultProxy))).setParams(name, keeper, address(this), MANAGEMENT_FEE);
         vaultProxy.transferOwnership(msg.sender);
-        vaultImplementation.transferOwnership(address(msg.sender));
         vaults[msg.sender][address(vaultProxy)] = name;
         emit CreateVault(msg.sender, name, address(vaultImplementation), address(vaultProxy));
     }
@@ -63,7 +63,6 @@ contract VaultFactory {
 
     function fireVaultEvent(address caller, bytes32 name, address trader, bool inverseCopyTrade, uint16 copySizeBPS, address defaultCollateral) public {
         require(vaults[caller][msg.sender] == name, "onlyVaultOwner call");
-        emit DeleteVault(caller, msg.sender);
         emit Trader(name, trader, inverseCopyTrade, copySizeBPS, defaultCollateral);
    }
 }

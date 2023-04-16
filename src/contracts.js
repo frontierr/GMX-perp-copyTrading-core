@@ -1,10 +1,9 @@
 const ADDRESSES = {
-    "VaultFactory" : "0x60A902f3Ce5c9D394DacBCf6566624F901eaEee7",
+    "VaultFactory" : "0x6aB19faC1fcaaa7D707e1111b2420F282Bd087d9",
     "Keeper" : "0xD5fba05dE4b2d303D03052e8aFbF31a767Bd908e",
     "Governor" : "0xD5fba05dE4b2d303D03052e8aFbF31a767Bd908e",
-    "Vault" : "0x5EE69845af2Ba394F460b4AD39963e7625f66EAA",
 }
-// https://goerli.arbiscan.io/tx/0x3c2467c5fb63eb0b0946fd9031bf88814649bbbab8611f8a507dfb31f66910fe#eventlog
+// https://goerli.arbiscan.io/address/0x2c553c312c470a32d603ea9077538fd6e2b01fed#events
 
 module.exports = {
     ADDRESSES,
