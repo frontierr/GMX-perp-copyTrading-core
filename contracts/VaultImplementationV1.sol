@@ -22,12 +22,17 @@ contract VaultImplementation is Initializable, OwnableUpgradeable, UUPSUpgradeab
         address defaultCollateral;
     }
 
-    mapping(address => TraderProps) traders;
+    mapping(address => TraderProps) public traders;
 
     event Trader(address  addressThis, address caller, bytes32 name, address trader, bool inverseCopyTrade, uint16 copySizeBPS, address defaultCollateral);
 
     modifier onlyKeeper() {
         require(msg.sender == keeper, "Only keeper");
+        _;
+    }
+    
+    modifier onlyVaultFactory() {
+        require(vaultFactory != address(0) && msg.sender == vaultFactory, "Only keeper");
         _;
     }
 
@@ -37,7 +42,7 @@ contract VaultImplementation is Initializable, OwnableUpgradeable, UUPSUpgradeab
         __Ownable_init();
     }
 
-    function setParams(bytes32 _name, address _keeper, address _vaultFactory, uint256 _managementFee) public onlyOwner {
+    function setParams(bytes32 _name, address _keeper, address _vaultFactory, uint256 _managementFee) public onlyVaultFactory{
         name = _name;
         keeper = _keeper;
         vaultFactory = _vaultFactory;
