@@ -1,20 +1,5 @@
-## to learn more on UUPS
-- https://github.com/nuthan2x/uups-feb23
-
-# Sample Hardhat Project
-
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.
-
-Try running some of the following tasks:
-
-```shell
-npx hardhat help
-npx hardhat test
-REPORT_GAS=true npx hardhat test
-npx hardhat node
-npx hardhat run scripts/deploy.js
-```
-
+## Copy Trading on top of GMX, DYDX, KWENTA, GAINS, LEVEL, VELA & more.
+- presentation at https://docs.google.com/presentation/d/1nvyCgkO7xOycq6s9iDtnpJw7GfwbzX_gYYkFvo4vNpw/edit?usp=sharing
 
 ## steps
 
